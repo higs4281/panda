@@ -5,6 +5,7 @@ import os
 
 import django
 from django.utils.translation import ugettext_lazy as _
+import djcelery
 
 # Which settings are we using?
 # Useful for debugging.
@@ -42,12 +43,12 @@ DATABASES = {
     }
 }
 
-TIME_ZONE = 'Etc/UTC' 
-USE_TZ = True 
+TIME_ZONE = 'Etc/UTC'
+USE_TZ = True
 
 LANGUAGE_CODE = 'en-us'
 USE_I18N = True
-USE_L10N = False 
+USE_L10N = False
 
 LOCALE_PATHS = (os.path.join(SITE_ROOT, 'locale'),)
 
@@ -96,7 +97,7 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATE_DIRS = (
-    os.path.join(SITE_ROOT, 'templates')
+    os.path.join(SITE_ROOT, 'templates'),
 )
 
 INSTALLED_APPS = (
@@ -110,11 +111,10 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.staticfiles',
 
-    'south',
     'tastypie',
     'djcelery',
     'compressor',
-    'livesettings',
+    # 'livesettings',
 
     'jumpstart',
     'panda',
@@ -126,10 +126,9 @@ SESSION_COOKIE_AGE = 2592000    # 30 days
 AUTH_PROFILE_MODULE = 'panda.UserProfile'
 
 # Django-compressor
-COMPRESS_ENABLED = False 
+COMPRESS_ENABLED = False
 
 # Celery
-import djcelery
 djcelery.setup_loader()
 
 BROKER_TRANSPORT = 'sqlalchemy'
@@ -159,12 +158,6 @@ CELERYBEAT_SCHEDULE = {
     }
 }
 
-# South
-SOUTH_TESTS_MIGRATE = False
-
-# Hack, see: http://stackoverflow.com/questions/3898239/souths-syncdb-migrate-creates-pages-of-output
-import south.logger
-
 # Logging
 LOGGING = {
     'version': 1,
@@ -174,31 +167,31 @@ LOGGING = {
             'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
         },
     },
-    'handlers': {  
+    'handlers': {
         'console': {
-            'level':'DEBUG',
-            'class':'logging.StreamHandler',
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
             'formatter': 'standard'
         },
         'default': {
-            'level':'INFO',
-            'class':'loghandlers.GroupWriteRotatingFileHandler',
+            'level': 'INFO',
+            'class': 'loghandlers.GroupWriteRotatingFileHandler',
             'filename': '/var/log/panda/panda.log',
-            'maxBytes': 1024*1024*5, # 5 MB
+            'maxBytes': 1024*1024*5,  # 5 MB
             'backupCount': 5,
-            'formatter':'standard',
+            'formatter': 'standard',
         },
         'request_handler': {
-                'level':'INFO',
-                'class':'loghandlers.GroupWriteRotatingFileHandler',
+                'level': 'INFO',
+                'class': 'loghandlers.GroupWriteRotatingFileHandler',
                 'filename': '/var/log/panda/requests.log',
-                'maxBytes': 1024*1024*5, # 5 MB
+                'maxBytes': 1024*1024*5,  # 5 MB
                 'backupCount': 5,
-                'formatter':'standard',
-        },  
+                'formatter': 'standard',
+        },
         'backend_handler': {
-                'level':'DEBUG',
-                'class':'django.utils.log.NullHandler',
+                'level': 'DEBUG',
+                'class': 'logging.NullHandler',
         },
     },
     'loggers': {
@@ -212,7 +205,7 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False
         },
-        'django.db': { 
+        'django.db': {
             'handlers': ['backend_handler'],
             'level': 'DEBUG',
             'propagate': False
@@ -235,11 +228,8 @@ LOGGING = {
     }
 }
 
-# Solr
-SOLR_ENDPOINT = 'http://localhost:8983/solr'
-SOLR_DATA_CORE = 'data'
-SOLR_DATASETS_CORE = 'datasets'
-SOLR_DIRECTORY = '/var/solr'
+# Elasticsearch
+ES_ENDPOINT = 'http://localhost:9200/'
 
 # Miscellaneous configuration
 PANDA_VERSION = '1.1.2'
@@ -250,13 +240,14 @@ PANDA_SNIFFER_MAX_SAMPLE_SIZE = 1024 * 100  # 100 KB
 PANDA_SAMPLE_DATA_ROWS = 5
 PANDA_SCHEMA_SAMPLE_ROWS = 100
 PANDA_ACTIVATION_PERIOD = datetime.timedelta(days=30)
-PANDA_AVAILABLE_SPACE_WARN = 1024 * 1024 * 1024 * 2 # 2GB
-PANDA_AVAILABLE_SPACE_CRITICAL = 1024 * 1024 * 1024 * 1 # 1GB
+PANDA_AVAILABLE_SPACE_WARN = 1024 * 1024 * 1024 * 2  # 2GB
+PANDA_AVAILABLE_SPACE_CRITICAL = 1024 * 1024 * 1024 * 1  # 1GB
 PANDA_NOTIFICATIONS_TO_SHOW = 50
 
 PANDA_UNCATEGORIZED_ID = 0
 PANDA_UNCATEGORIZED_SLUG = 'uncategorized'
-# running this through gettext causes file uploads not to work, so disabled until solved!
+# running this through gettext causes file uploads
+# not to work, so disabled until solved!
 PANDA_UNCATEGORIZED_NAME = _('Uncategorized')
 
 MOMENT_LANGUAGE_MAPPING = {
@@ -264,10 +255,3 @@ MOMENT_LANGUAGE_MAPPING = {
     'es': 'es',
     'de': 'de'
 }
-
-# Allow for local (per-user) override
-try:
-    from local_settings import *
-except ImportError:
-    pass
-
