@@ -10,13 +10,15 @@ import datetime
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import datetime_safe
-from django.utils import simplejson
+import json
 
 import requests
 
+
 class SolrJSONEncoder(DjangoJSONEncoder):
     """
-    Custom JSONEncoder based on DjangoJSONEncoder that formats datetimes the way Solr likes them. 
+    Custom JSONEncoder based on DjangoJSONEncoder that formats datetimes
+     the way Solr likes them.
     """
     def default(self, o):
         if isinstance(o, datetime.datetime):
@@ -25,11 +27,14 @@ class SolrJSONEncoder(DjangoJSONEncoder):
         else:
             return super(SolrJSONEncoder, self).default(o)
 
+
 def dumps(data):
-    return simplejson.dumps(data, cls=SolrJSONEncoder)
+    return json.dumps(data, cls=SolrJSONEncoder)
+
 
 def loads(data):
-    return simplejson.loads(data)
+    return json.loads(data)
+
 
 class SolrError(Exception):
     """
@@ -44,6 +49,7 @@ class SolrError(Exception):
     def __unicode__(self):
         return self.response_body
 
+
 def add(core, documents, commit=False):
     """
     Add a document or list of documents to Solr.
@@ -51,25 +57,33 @@ def add(core, documents, commit=False):
     Does not commit changes by default.
     """
     url = ''.join([settings.SOLR_ENDPOINT, '/', core, '/update'])
-    params = { 'commit': 'true' } if commit else {}
-    response = requests.post(url, dumps(documents), params=params, headers={ 'Content-Type': 'application/json' })
+    params = {'commit': 'true'} if commit else {}
+    response = requests.post(
+        url,
+        dumps(documents),
+        params=params,
+        headers={'Content-Type': 'application/json'})
 
     if response.status_code != 200:
         raise SolrError(response)
-    
     return loads(response.content)
+
 
 def commit(core):
     """
     Commit all staged changes to the Solr index.
     """
     url = ''.join([settings.SOLR_ENDPOINT, '/', core, '/update'])
-    response = requests.post(url, '[]', params={ 'commit': 'true' }, headers={ 'Content-Type': 'application/json' })
+    response = requests.post(
+        url,
+        '[]',
+        params={'commit': 'true'},
+        headers={'Content-Type': 'application/json'})
 
     if response.status_code != 200:
         raise SolrError(response)
-    
     return loads(response.content)
+
 
 def delete(core, q, commit=True):
     """
@@ -78,36 +92,65 @@ def delete(core, q, commit=True):
     Commits changes by default.
     """
     url = ''.join([settings.SOLR_ENDPOINT, '/', core, '/update'])
-    params = { 'commit': 'true' } if commit else {}
-    response = requests.post(url, dumps({ 'delete': { 'query': q } }), params=params, headers={ 'Content-Type': 'application/json' })
-    
+    params = {'commit': 'true'} if commit else {}
+    response = requests.post(
+        url,
+        dumps({'delete': {'query': q}}),
+        params=params,
+        headers={'Content-Type': 'application/json'})
     if response.status_code != 200:
         raise SolrError(response)
-    
     return loads(response.content)
+
 
 def query(core, q, limit=10, offset=0, sort='_docid_ asc'):
     """
     Execute a simple, raw query against the Solr index.
     """
     url = ''.join([settings.SOLR_ENDPOINT, '/', core, '/select'])
-    response = requests.get(url, params={ 'q': q, 'mm': '1', 'start': offset, 'rows': limit, 'sort': sort }, headers={ 'Content-Type': 'application/json' })
+    response = requests.get(
+        url,
+        params={'q': q,
+                'mm': '1',
+                'start': offset,
+                'rows': limit,
+                'sort': sort},
+        headers={'Content-Type': 'application/json'})
 
     if response.status_code != 200:
         raise SolrError(response)
-    
     return loads(response.content)
 
-def query_grouped(core, q, group_field, limit=10, offset=0, sort='_docid_ asc', group_limit=settings.PANDA_DEFAULT_SEARCH_ROWS_PER_GROUP, group_offset=0):
+
+def query_grouped(
+        core,
+        q,
+        group_field,
+        limit=10,
+        offset=0,
+        sort='_docid_ asc',
+        group_limit=settings.PANDA_DEFAULT_SEARCH_ROWS_PER_GROUP,
+        group_offset=0):
     """
     Execute a query and return results in a grouped format
     appropriate for the PANDA API.
     """
     url = ''.join([settings.SOLR_ENDPOINT, '/', core, '/select'])
-    response = requests.get(url, params={ 'q': q, 'mm': '1', 'start': offset, 'rows': limit, 'sort': sort, 'group': 'true', 'group.field': group_field, 'group.limit': group_limit, 'group.offset': group_offset, 'group.ngroups': 'true' }, headers={ 'Content-Type': 'application/json' })
+    response = requests.get(
+        url,
+        params={'q': q,
+                'mm': '1',
+                'start': offset,
+                'rows': limit,
+                'sort': sort,
+                'group': 'true',
+                'group.field': group_field,
+                'group.limit': group_limit,
+                'group.offset': group_offset,
+                'group.ngroups': 'true'},
+        headers={'Content-Type': 'application/json'})
 
     if response.status_code != 200:
         raise SolrError(response)
 
     return loads(response.content)
-

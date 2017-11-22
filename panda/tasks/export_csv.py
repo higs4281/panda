@@ -8,9 +8,9 @@ import time
 
 from csvkit import CSVKitWriter
 from django.conf import settings
-from django.utils import simplejson as json
+import json
 from django.utils.translation import ugettext
-from livesettings import config_value
+from livesettings.functions import config_value
 
 from panda import solr
 from panda.tasks.export_file import ExportFileTask 

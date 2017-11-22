@@ -7,7 +7,7 @@ import time
 from django.conf import settings
 from django.utils.translation import ugettext
 import xlrd
-from livesettings import config_value
+from livesettings.functions import config_value
 
 from panda import solr, utils
 from panda.tasks.import_file import ImportFileTask

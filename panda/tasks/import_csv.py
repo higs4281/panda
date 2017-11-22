@@ -7,11 +7,11 @@ import time
 from csvkit import CSVKitReader
 from django.conf import settings
 from django.utils.translation import ugettext
-from livesettings import config_value
+from livesettings.functions import config_value
 
 from panda import solr, utils
 from panda.exceptions import DataImportError
-from panda.tasks.import_file import ImportFileTask 
+from panda.tasks.import_file import ImportFileTask
 from panda.utils.typecoercion import DataTyper
 
 SOLR_ADD_BUFFER_SIZE = 500

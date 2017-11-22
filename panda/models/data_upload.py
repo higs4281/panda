@@ -8,9 +8,10 @@ from django.utils.translation import ugettext_lazy as _
 
 from panda import utils
 from panda.exceptions import DataUploadNotDeletable
-from panda.fields import JSONField
+from jsonfield import JSONField
 from panda.models.base_upload import BaseUpload
 from panda.tasks import PurgeDataTask
+
 
 class DataUpload(BaseUpload):
     """

@@ -1,6 +1,7 @@
-#!/usr/bin/env python
-
-from livesettings import config_register, BooleanValue, ConfigurationGroup, FloatValue, PositiveIntegerValue, StringValue
+from livesettings.values import (
+    BooleanValue, ConfigurationGroup, FloatValue,
+    PositiveIntegerValue, StringValue)
+from livesettings.functions import config_register
 from django.utils.translation import ugettext_lazy as _
 
 # Site domain settings
@@ -28,7 +29,9 @@ config_register(BooleanValue(
     EMAIL_GROUP,
     'EMAIL_ENABLED',
     description=_('Enable email?'),
-    help_text=_('If enabled, notifications and activation messages will be sent via email.'),
+    help_text=_(
+        'If enabled, notifications and activation messages '
+        'will be sent via email.'),
     default=False,
     ordering=0
 ))

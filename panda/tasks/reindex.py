@@ -7,9 +7,9 @@ import traceback
 
 from panda.tasks.base import AbortableTask
 from django.conf import settings
-from django.utils import simplejson as json
+import json
 from django.utils.translation import ugettext
-from livesettings import config_value
+from livesettings.functions import config_value
 
 from panda import solr, utils
 from panda.utils.notifications import notify

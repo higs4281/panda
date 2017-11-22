@@ -10,10 +10,10 @@ from zipfile import ZipFile
 from panda.tasks.base import AbortableTask
 from csvkit import CSVKitWriter
 from django.conf import settings
-from django.utils import simplejson as json
+import json
 from django.utils.timezone import now 
 from django.utils.translation import ugettext
-from livesettings import config_value
+from livesettings.functions import config_value
 
 from panda import solr
 from panda.utils.notifications import notify

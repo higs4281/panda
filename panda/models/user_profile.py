@@ -7,10 +7,11 @@ from django.conf import settings
 from django.db import models
 from django.utils.timezone import now
 from django.utils.translation import ugettext as _
-from livesettings import config_value
+from livesettings.functions import config_value
 
 from panda.models.user_proxy import UserProxy
 from panda.utils.mail import send_mail
+
 
 class UserProfile(models.Model):
     """

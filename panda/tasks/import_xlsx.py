@@ -7,7 +7,7 @@ import time
 
 from django.conf import settings
 from django.utils.translation import ugettext
-from livesettings import config_value
+from livesettings.functions import config_value
 from openpyxl.reader.excel import load_workbook
 
 from panda import solr, utils

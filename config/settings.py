@@ -114,7 +114,7 @@ INSTALLED_APPS = (
     'tastypie',
     'djcelery',
     'compressor',
-    # 'livesettings',
+    'livesettings',
 
     'jumpstart',
     'panda',

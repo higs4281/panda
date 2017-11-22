@@ -9,7 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from panda import solr, utils
 from panda.exceptions import DataImportError, DatasetLockedError
-from panda.fields import JSONField
+from jsonfield import JSONField
 from panda.models.category import Category
 from panda.models.slugged_model import SluggedModel
 from panda.models.task_status import TaskStatus
@@ -17,6 +17,7 @@ from panda.models.user_proxy import UserProxy
 from panda.tasks import get_import_task_type_for_upload, ExportCSVTask, PurgeDataTask, ReindexTask 
 from panda.utils.column_schema import make_column_schema, update_indexed_names
 from panda.utils.typecoercion import DataTyper
+
 
 class Dataset(SluggedModel):
     """

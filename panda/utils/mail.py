@@ -4,7 +4,8 @@ import logging
 import socket
 
 from django.core import mail
-from livesettings import config_value
+from livesettings.functions import config_value
+
 
 def get_connection():
     return mail.get_connection(
@@ -13,7 +14,8 @@ def get_connection():
         # See http://bugs.python.org/issue8489
         username=str(config_value('EMAIL', 'EMAIL_HOST_USER')),
         password=str(config_value('EMAIL', 'EMAIL_HOST_PASSWORD')),
-        use_tls=config_value('EMAIL', 'EMAIL_USE_TLS')) 
+        use_tls=config_value('EMAIL', 'EMAIL_USE_TLS'))
+
 
 def send_mail(subject, message, recipients):
     log = logging.getLogger('panda.utils.mail')
@@ -23,7 +25,12 @@ def send_mail(subject, message, recipients):
         return
 
     try:
-        mail.send_mail('[PANDA] %s' % subject, message, str(config_value('EMAIL', 'DEFAULT_FROM_EMAIL')), recipients, connection=get_connection())
+        mail.send_mail(
+            '[PANDA] %s' % subject,
+            message,
+            str(config_value('EMAIL', 'DEFAULT_FROM_EMAIL')),
+            recipients,
+            connection=get_connection())
     except socket.error:
-        log.error('Failed connecting to email server. (Sending to %s.)' % recipients)
-
+        log.error(
+            'Failed connecting to email server. (Sending to %s.)' % recipients)

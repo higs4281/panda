@@ -22,7 +22,7 @@ django-appconf==1.0.2
 django-celery==3.2.2
 django-compressor==2.2
 django-keyedcache==1.5.1
-django-livesettings==1.4.post16
+django-livesettings==1.4.post14
 django-tastypie==0.9.11
 docutils==0.14
 enum34==1.1.6

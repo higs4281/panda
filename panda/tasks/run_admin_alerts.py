@@ -6,7 +6,7 @@ import os
 from panda.tasks.base import Task
 from django.conf import settings
 from django.template import Context
-from livesettings import config_value
+from livesettings.functions import config_value
 
 from client.utils import get_total_disk_space, get_free_disk_space
 from panda.utils.mail import send_mail
