@@ -8,14 +8,14 @@ Base configuration
 env.user = 'ubuntu'
 env.project_name = 'panda'
 env.database_password = 'panda'
-env.path = '/opt/%(project_name)s' % env
-env.solr_path = '/opt/solr/panda/solr'
+env.path = '/usr/local/opt/%(project_name)s' % env
+env.solr_path = '/usr/local/opt/solr/panda/solr'
 env.repository_url = 'git://github.com/pandaproject/panda.git'
 env.hosts = ['panda.beta.tribapps.com']
 env.vars = 'DEPLOYMENT_TARGET="deployed"'
 
 env.local_solr = 'apache-solr-3.4.0/example'
-env.local_solr_home = '/var/solr'
+env.local_solr_home = '/usr/local/var/solr'
 
 env.local_test_email = 'panda@pandaproject.net'
 env.local_test_api_key = 'edfe6c5ffd1be4d3bf22f69188ac6bc0fc04c84b'

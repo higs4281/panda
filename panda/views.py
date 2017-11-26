@@ -9,7 +9,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponse
 from django.utils.timezone import now
 from django.utils.translation import ugettext as _
-from livesettings import config_value
+from livesettings.functions import config_value
 from tastypie.bundle import Bundle
 from tastypie.serializers import Serializer
 

@@ -1,20 +1,23 @@
 #!/usr/bin/env python
+import re
 
 from django.conf import settings
-from django.conf.urls.defaults import url
+from django.conf.urls import url
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.validators import email_re
 from django.utils.translation import ugettext_lazy as _
 from tastypie import fields
 from tastypie import http
 from tastypie.authorization import Authorization
 from tastypie.exceptions import BadRequest, NotFound, ImmediateHttpResponse
-from tastypie.resources import NOT_AVAILABLE
 from tastypie.utils.urls import trailing_slash
 from tastypie.validation import Validation
 
-from panda.api.utils import PandaAuthentication, PandaSerializer, PandaModelResource
+from panda.api.utils import (
+    PandaAuthentication, PandaSerializer, PandaModelResource)
 from panda.models import Export, UserProxy
+
+email_re = re.compile('[^@]+@[^@]+\.[^@]+')
+
 
 class UserValidation(Validation):
     def is_valid(self, bundle, request=None):
@@ -27,6 +30,7 @@ class UserValidation(Validation):
 
         return errors
 
+
 class UserAuthorization(Authorization):
     def is_authorized(self, request, obj=None):
         """
@@ -37,6 +41,7 @@ class UserAuthorization(Authorization):
             return True
         else:
             return request.user.is_superuser
+
 
 class UserResource(PandaModelResource):
     """
@@ -196,7 +201,7 @@ class UserResource(PandaModelResource):
                 for key in kwargs.keys():
                     if key == 'pk':
                         continue
-                    elif getattr(bundle.obj, key, NOT_AVAILABLE) is not NOT_AVAILABLE:
+                    elif getattr(bundle.obj, key, 'NOT_AVAILABLE') is not 'NOT_AVAILABLE':
                         lookup_kwargs[key] = getattr(bundle.obj, key)
                     else:
                         del lookup_kwargs[key]

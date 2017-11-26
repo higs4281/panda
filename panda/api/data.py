@@ -4,22 +4,24 @@ import re
 
 from django.conf import settings
 from django.core.urlresolvers import get_script_prefix, resolve, reverse
-from django.utils import simplejson as json
+import json
 from django.utils.translation import ugettext_lazy as _
 from tastypie import fields, http
 from tastypie.authorization import DjangoAuthorization
 from tastypie.bundle import Bundle
 from tastypie.exceptions import BadRequest, NotFound, ImmediateHttpResponse
-from tastypie.utils import dict_strip_unicode_keys 
+from tastypie.utils import dict_strip_unicode_keys
 from tastypie.utils.mime import build_content_type
 from tastypie.validation import Validation
 
 from panda import solr
 from panda.api.datasets import DatasetResource
 from panda.exceptions import DatasetLockedError
-from panda.api.utils import PandaAuthentication, PandaPaginator, PandaResource, PandaSerializer
+from panda.api.utils import (
+    PandaAuthentication, PandaPaginator, PandaResource, PandaSerializer)
 from panda.models import Category, Dataset, SearchLog, TaskStatus, UserProxy
 from panda.tasks import ExportSearchTask, PurgeDataTask
+
 
 class SolrObject(object):
     """
@@ -49,6 +51,7 @@ class SolrObject(object):
     def to_dict(self):
         return self._data
 
+
 class DataValidation(Validation):
     """
     Tastypie Validation for Data objects.
@@ -66,6 +69,7 @@ class DataValidation(Validation):
                 errors['external_id'] = [_('external_id can only contain letters, numbers, underscores and dashes.')]
 
         return errors
+
 
 class DataResource(PandaResource):
     """
@@ -128,7 +132,6 @@ class DataResource(PandaResource):
         else:
             kwargs['dataset_slug'] = bundle_or_obj.dataset_slug
             kwargs['external_id'] = bundle_or_obj.external_id
- 
         if not kwargs['external_id']:
             return None
 
@@ -139,7 +142,6 @@ class DataResource(PandaResource):
         Extract a dataset from one of the variety of places it might be hiding.
         """
         kwargs_slug = kwargs['dataset_slug']
-        
         bundle_uri = None
         bundle_slug = None
 
@@ -196,20 +198,20 @@ class DataResource(PandaResource):
 
     def get_object_list():
         """
-        Bypassed, should never be invoked. 
+        Bypassed, should never be invoked.
 
         Since Solr queries are not lazy, fetching a complete list
         of objects never makes sense.
         """
-        raise NotImplementedError() 
+        raise NotImplementedError()
 
     def obj_get_list(self, request=None, **kwargs):
         """
-        Bypassed, should never be invoked. 
-        
+        Bypassed, should never be invoked.
+
         See ``get_list``.
         """
-        raise NotImplementedError() 
+        raise NotImplementedError()
 
     def obj_get(self, request=None, **kwargs):
         """
@@ -244,9 +246,12 @@ class DataResource(PandaResource):
         user = UserProxy.objects.get(id=request.user.id)
 
         try:
-            row = dataset.add_row(user, bundle.data['data'], external_id=external_id)
+            row = dataset.add_row(
+                user, bundle.data['data'], external_id=external_id)
         except DatasetLockedError:
-            raise ImmediateHttpResponse(response=http.HttpForbidden(_('Dataset is currently locked by another process.')))
+            raise ImmediateHttpResponse(
+                response=http.HttpForbidden(
+                    _('Dataset is currently locked by another process.')))
 
         bundle.obj = SolrObject(row)
 
@@ -260,7 +265,7 @@ class DataResource(PandaResource):
 
     def obj_delete_list(self, request=None, **kwargs):
         """
-        See ``put_list``. 
+        See ``put_list``.
         """
         raise NotImplementedError()
 
@@ -277,7 +282,9 @@ class DataResource(PandaResource):
         try:
             dataset.delete_row(user, kwargs['external_id'])
         except DatasetLockedError:
-            raise ImmediateHttpResponse(response=http.HttpForbidden(_('Dataset is currently locked by another process.')))
+            raise ImmediateHttpResponse(
+                response=http.HttpForbidden(
+                    _('Dataset is currently locked by another process.')))
 
     def rollback(self, bundles):
         """
@@ -325,7 +332,8 @@ class DataResource(PandaResource):
         dataset = self.get_dataset_from_kwargs(None, **kwargs)
 
         for object_data in deserialized['objects']:
-            bundle = self.build_bundle(data=dict_strip_unicode_keys(object_data), request=request)
+            bundle = self.build_bundle(
+                data=dict_strip_unicode_keys(object_data), request=request)
 
             self.is_valid(bundle, request)
 
@@ -337,17 +345,17 @@ class DataResource(PandaResource):
                 bundle.data['data'],
                 bundle.data.get('external_id', None) 
             ))
-        
             self.validate_bundle_data(bundle, request, dataset)
 
         # Because users may have authenticated via headers the request.user may
         # not be a full User instance. To be sure, we fetch one.
         user = UserProxy.objects.get(id=request.user.id)
-        
         try:
             solr_rows = dataset.add_many_rows(user, data)
         except DatasetLockedError:
-            raise ImmediateHttpResponse(response=http.HttpForbidden(_('Dataset is currently locked by another process.')))
+            raise ImmediateHttpResponse(
+                response=http.HttpForbidden(
+                    _('Dataset is currently locked by another process.')))
 
         for bundle, solr_row in zip(bundles, solr_rows):
             bundle.obj = SolrObject(solr_row)
@@ -356,10 +364,13 @@ class DataResource(PandaResource):
             return http.HttpNoContent()
         else:
             to_be_serialized = {}
-            to_be_serialized['objects'] = [self.full_dehydrate(bundle) for bundle in bundles]
-            to_be_serialized = self.alter_list_data_to_serialize(request, to_be_serialized)
+            to_be_serialized['objects'] = [self.full_dehydrate(bundle)
+                                           for bundle in bundles]
+            to_be_serialized = self.alter_list_data_to_serialize(
+                request, to_be_serialized)
 
-            return self.create_response(request, to_be_serialized, response_class=http.HttpAccepted)
+            return self.create_response(
+                request, to_be_serialized, response_class=http.HttpAccepted)
 
     def put_detail(self, request, **kwargs):
         """
@@ -395,11 +406,13 @@ class DataResource(PandaResource):
         # Because users may have authenticated via headers the request.user may
         # not be a full User instance. To be sure, we fetch one.
         user = UserProxy.objects.get(id=request.user.id)
-        
+
         try:
-            dataset.delete_all_rows(user) 
+            dataset.delete_all_rows(user)
         except DatasetLockedError:
-            raise ImmediateHttpResponse(response=http.HttpForbidden(_('Dataset is currently locked by another process.')))
+            raise ImmediateHttpResponse(
+                response=http.HttpForbidden(
+                    _('Dataset is currently locked by another process.')))
 
         return http.HttpNoContent()
 
@@ -423,9 +436,12 @@ class DataResource(PandaResource):
 
         category = request.GET.get('category', '')
         since = request.GET.get('since', None)
-        limit = int(request.GET.get('limit', settings.PANDA_DEFAULT_SEARCH_GROUPS))
+        limit = int(request.GET.get(
+            'limit', settings.PANDA_DEFAULT_SEARCH_GROUPS))
         offset = int(request.GET.get('offset', 0))
-        group_limit = int(request.GET.get('group_limit', settings.PANDA_DEFAULT_SEARCH_ROWS_PER_GROUP))
+        group_limit = int(
+            request.GET.get('group_limit',
+                            settings.PANDA_DEFAULT_SEARCH_ROWS_PER_GROUP))
         group_offset = int(request.GET.get('group_offset', 0))
         export = bool(request.GET.get('export', False))
 
@@ -434,11 +450,14 @@ class DataResource(PandaResource):
         if category:
             if category != 'uncategorized':
                 category = Category.objects.get(slug=category)
-                dataset_slugs = category.datasets.values_list('slug', flat=True)
+                dataset_slugs = category.datasets.values_list(
+                    'slug', flat=True)
             else:
-                dataset_slugs = Dataset.objects.filter(categories=None).values_list('slug', flat=True) 
+                dataset_slugs = Dataset.objects.filter(
+                    categories=None).values_list('slug', flat=True)
 
-            solr_query_bits.append('dataset_slug:(%s)' % ' '.join(dataset_slugs))
+            solr_query_bits.append(
+                'dataset_slug:(%s)' % ' '.join(dataset_slugs))
 
         if since:
             solr_query_bits.append('last_modified:[' + since + 'Z TO *]')
@@ -485,7 +504,7 @@ class DataResource(PandaResource):
             for group in groups:
                 dataset_slug = group['groupValue']
                 results = group['doclist']
-                
+
                 try:
                     dataset = Dataset.objects.get(slug=dataset_slug)
                 # In the event that stale data exists in Solr, skip this dataset,
@@ -493,23 +512,34 @@ class DataResource(PandaResource):
                 # Pagination may be wrong, but this is the most functional solution. (#793)
                 except Dataset.DoesNotExist:
                     PurgeDataTask.apply_async(args=[dataset_slug])
-                    solr.delete(settings.SOLR_DATASETS_CORE, 'slug:%s' % dataset_slug)
+                    solr.delete(
+                        settings.SOLR_DATASETS_CORE, 'slug:%s' % dataset_slug)
 
                     page['meta']['total_count'] -= 1
 
                     continue
-                
+
                 dataset_resource = DatasetResource()
-                dataset_bundle = dataset_resource.build_bundle(obj=dataset, request=request)
-                dataset_bundle = dataset_resource.full_dehydrate(dataset_bundle)
-                dataset_bundle = dataset_resource.simplify_bundle(dataset_bundle)
+                dataset_bundle = dataset_resource.build_bundle(
+                    obj=dataset, request=request)
+                dataset_bundle = dataset_resource.full_dehydrate(
+                    dataset_bundle)
+                dataset_bundle = dataset_resource.simplify_bundle(
+                    dataset_bundle)
 
                 objects = [SolrObject(obj) for obj in results['docs']]
-                
-                dataset_search_url = reverse('api_dataset_data_list', kwargs={ 'api_name': self._meta.api_name, 'dataset_resource_name': 'dataset', 'resource_name': 'data', 'dataset_slug': dataset.slug })
+
+                dataset_search_url = reverse(
+                    'api_dataset_data_list',
+                    kwargs={'api_name': self._meta.api_name,
+                            'dataset_resource_name': 'dataset',
+                            'resource_name': 'data',
+                            'dataset_slug': dataset.slug})
 
                 data_page = PandaPaginator(
-                    { 'limit': str(group_limit), 'offset': str(group_offset), 'q': query },
+                    {'limit': str(group_limit),
+                     'offset': str(group_offset),
+                     'q': query},
                     objects,
                     resource_uri=dataset_search_url,
                     count=results['numFound']
@@ -526,7 +556,7 @@ class DataResource(PandaResource):
                 datasets.append(dataset_bundle.data)
 
             page['objects'] = datasets
-            
+
             # Log query
             SearchLog.objects.create(user=user, dataset=None, query=query)
 
@@ -551,7 +581,8 @@ class DataResource(PandaResource):
             query = ''
 
         since = request.GET.get('since', None)
-        limit = int(request.GET.get('limit', settings.PANDA_DEFAULT_SEARCH_ROWS))
+        limit = int(request.GET.get(
+            'limit', settings.PANDA_DEFAULT_SEARCH_ROWS))
         offset = int(request.GET.get('offset', 0))
         sort = request.GET.get('sort', '_docid_ asc')
 
@@ -570,10 +601,11 @@ class DataResource(PandaResource):
         )
 
         dataset_resource = DatasetResource()
-        dataset_bundle = dataset_resource.build_bundle(obj=dataset, request=request)
+        dataset_bundle = dataset_resource.build_bundle(
+            obj=dataset, request=request)
         dataset_bundle = dataset_resource.full_dehydrate(dataset_bundle)
         dataset_bundle = dataset_resource.simplify_bundle(dataset_bundle)
-       
+
         results = [SolrObject(d) for d in response['response']['docs']]
 
         page = PandaPaginator(
@@ -581,8 +613,8 @@ class DataResource(PandaResource):
             results,
             resource_uri=request.path_info,
             count=response['response']['numFound']
-        ).page() 
-        
+        ).page()
+
         dataset_bundle.data.update(page)
         dataset_bundle.data['objects'] = []
 
@@ -594,8 +626,7 @@ class DataResource(PandaResource):
         # Because users may have authenticated via headers the request.user may
         # not be a full User instance. To be sure, we fetch one.
         user = UserProxy.objects.get(id=request.user.id)
-        
+
         SearchLog.objects.create(user=user, dataset=dataset, query=query)
 
         return dataset_bundle
-

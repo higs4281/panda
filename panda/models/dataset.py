@@ -46,7 +46,7 @@ class Dataset(SluggedModel):
     creator = models.ForeignKey(UserProxy, related_name='datasets',
         help_text=_('The user who created this dataset.'),
         verbose_name=_('creator'))
-    categories = models.ManyToManyField(Category, related_name='datasets', blank=True, null=True,
+    categories = models.ManyToManyField(Category, related_name='datasets', blank=True,
         help_text=_('Categories containing this Dataset.'),
         verbose_name=_('categories'))
     last_modified = models.DateTimeField(_('last_modified'), null=True, blank=True, default=None,

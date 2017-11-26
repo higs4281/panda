@@ -11,12 +11,13 @@ from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.utils.timezone import now
 
-from livesettings import config_value
+from livesettings.functions import config_value
 from tastypie.serializers import Serializer
 
 from client import utils
 from panda.api.category import CategoryResource
 from panda.models import ActivityLog, Category, Dataset, SearchLog, UserProxy
+
 
 def index(request):
     """

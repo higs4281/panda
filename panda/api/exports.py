@@ -2,8 +2,8 @@
 
 from mimetypes import guess_type
 
-from django.conf.urls.defaults import url
-from django.core.servers.basehttp import FileWrapper
+from django.conf.urls import url
+from wsgiref.util import FileWrapper
 from django.http import HttpResponse
 from tastypie import fields
 from tastypie.authorization import DjangoAuthorization

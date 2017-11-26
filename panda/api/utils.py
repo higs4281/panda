@@ -3,11 +3,10 @@
 from urllib import unquote
 
 from django.conf import settings
-from django.conf.urls.defaults import url
+from django.conf.urls import url
 from django.http import HttpResponse
 from django.middleware.csrf import _sanitize_token, constant_time_compare
-from django.utils.http import same_origin
-from tastypie.authentication import ApiKeyAuthentication
+from tastypie.authentication import ApiKeyAuthentication, same_origin
 from tastypie.bundle import Bundle
 from tastypie.fields import ApiField, CharField
 from tastypie.paginator import Paginator
@@ -15,10 +14,11 @@ from tastypie.resources import ModelResource, Resource
 from tastypie.serializers import Serializer
 from tastypie.utils.urls import trailing_slash
 
-from panda.fields import JSONField
+from jsonfield import JSONField
 from panda.models import UserProxy
 
 PANDA_CACHE_CONTROL = 'max-age=0,no-cache,no-store'
+
 
 class JSONApiField(ApiField):
     """
@@ -26,28 +26,36 @@ class JSONApiField(ApiField):
     """
     dehydrated_type = 'json'
     help_text = 'JSON structured data.'
-    
+
     def dehydrate(self, obj):
         return self.convert(super(JSONApiField, self).dehydrate(obj))
-    
+
     def convert(self, value):
         if value is None:
             return None
 
         return value
 
+
 class PandaResource(Resource):
     """
     Resource subclass that overrides cache headers.
     """
-    def create_response(self, request, data, response_class=HttpResponse, **response_kwargs):
+    def create_response(
+            self,
+            request,
+            data,
+            response_class=HttpResponse,
+            **response_kwargs):
         """
         Override response generation to add ``Cache-Control: no-cache`` header.
         """
-        response = super(PandaResource, self).create_response(request, data, response_class, **response_kwargs)
+        response = super(PandaResource, self).create_response(
+            request, data, response_class, **response_kwargs)
         response['Cache-Control'] = PANDA_CACHE_CONTROL
 
         return response
+
 
 class PandaModelResource(ModelResource):
     """
@@ -56,21 +64,30 @@ class PandaModelResource(ModelResource):
     @classmethod
     def api_field_from_django_field(cls, f, default=CharField):
         """
-        Overrides default field handling to support custom ListField and JSONField.
+        Overrides default field handling to support
+        custom ListField and JSONField.
         """
         if isinstance(f, JSONField):
             return JSONApiField
     
-        return super(PandaModelResource, cls).api_field_from_django_field(f, default)
+        return super(
+            PandaModelResource, cls).api_field_from_django_field(f, default)
 
-    def create_response(self, request, data, response_class=HttpResponse, **response_kwargs):
+    def create_response(
+            self,
+            request,
+            data,
+            response_class=HttpResponse,
+            **response_kwargs):
         """
         Override response generation to add ``Cache-Control: no-cache`` header.
         """
-        response = super(PandaModelResource, self).create_response(request, data, response_class, **response_kwargs)
+        response = super(PandaModelResource, self).create_response(
+            request, data, response_class, **response_kwargs)
         response['Cache-Control'] = PANDA_CACHE_CONTROL
 
         return response
+
 
 class SluggedModelResource(PandaModelResource):
     """
@@ -100,18 +117,27 @@ class SluggedModelResource(PandaModelResource):
         """
         The standard URLs this ``Resource`` should respond to.
         """
-        # Due to the way Django parses URLs, ``get_multiple`` won't work without
-        # a trailing slash.
+        # Due to the way Django parses URLs, ``get_multiple`` won't work
+        # without a trailing slash.
         return [
-            url(r"^(?P<resource_name>%s)%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('dispatch_list'), name="api_dispatch_list"),
-            url(r"^(?P<resource_name>%s)/schema%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_schema'), name="api_get_schema"),
-            url(r"^(?P<resource_name>%s)/set/(?P<slug_list>[\w\d_-]+)/$" % self._meta.resource_name, self.wrap_view('get_multiple'), name="api_get_multiple"),
-            url(r"^(?P<resource_name>%s)/(?P<slug>[\w\d_-]+)%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+            url(r"^(?P<resource_name>%s)%s$" % (
+                self._meta.resource_name, trailing_slash()),
+                self.wrap_view('dispatch_list'), name="api_dispatch_list"),
+            url(r"^(?P<resource_name>%s)/schema%s$" % (
+                self._meta.resource_name, trailing_slash()),
+                self.wrap_view('get_schema'), name="api_get_schema"),
+            url(r"^(?P<resource_name>%s)/set/(?P<slug_list>[\w\d_-]+)/$",
+                self.wrap_view('get_multiple'), name="api_get_multiple"),
+            url(r"^(?P<resource_name>%s)/(?P<slug>[\w\d_-]+)%s$" % (
+                self._meta.resource_name, trailing_slash()),
+                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]
+
 
 class PandaAuthentication(ApiKeyAuthentication):
     """
-    Custom API Auth that authenticates via sessions, headers or querystring parameters. 
+    Custom API Auth that authenticates via sessions, headers
+    or querystring parameters.
     """
     def try_sessions(self, request, **kwargs):
         """

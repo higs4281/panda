@@ -6,6 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from panda import solr
 
+
 class UserProxy(User):
     """
     User Django's ProxyModel concept to track changes to the User
@@ -33,18 +34,15 @@ class UserProxy(User):
 
     def save(self, *args, **kwargs):
         super(User, self).save(*args, **kwargs)
-        
-        if self.first_name != self.__original_first_name or \
-            self.last_name != self.__original_last_name or \
-            self.email != self.__original_email:
 
+        if (self.first_name != self.__original_first_name or
+                self.last_name != self.__original_last_name or
+                self.email != self.__original_email):
             if self.datasets.count():
                 for dataset in self.datasets.all():
                     dataset.update_full_text(commit=False)
-                
                 solr.commit(settings.SOLR_DATASETS_CORE)
 
         self.__original_first_name = self.first_name
         self.__original_last_name = self.last_name
         self.__original_email = self.email
-

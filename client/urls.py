@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-from django.conf.urls.defaults import patterns, url
-
+from django.conf.urls import url
+from django.views.i18n import javascript_catalog
 from client import views
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^templates.js$', views.jst, name='jst'),
-    url(r'^i18n.js$', 'django.views.i18n.javascript_catalog'),
     url(r'^dashboard/$', views.dashboard, name='dashboard'),
+    url(r'^jsi18n/$', javascript_catalog,
+        name='javascript-catalog'),
     url(r'^$', views.index, name='index')
-)
-
+]
